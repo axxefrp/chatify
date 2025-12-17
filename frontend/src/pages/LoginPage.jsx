@@ -75,10 +75,15 @@ function LoginPage() {
                   </button>
                 </form>
 
-                <div className="mt-6 text-center">
+                <div className="mt-6 text-center space-y-2">
                   <Link to="/signup" className="auth-link">
                     Don't have an account? Sign Up
                   </Link>
+                  <div>
+                    <Link to="/forgot-password" className="auth-link">
+                      Forgot your password?
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
