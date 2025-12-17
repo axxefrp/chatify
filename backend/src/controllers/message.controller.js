@@ -36,12 +36,12 @@ export const getMessagesByUserId = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image } = req.body;
+    const { text, image, audio } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
-    if (!text && !image) {
-      return res.status(400).json({ message: "Text or image is required." });
+    if (!text && !image && !audio) {
+      return res.status(400).json({ message: "Text, image, or audio is required." });
     }
     if (senderId.equals(receiverId)) {
       return res.status(400).json({ message: "Cannot send messages to yourself." });
@@ -58,11 +58,22 @@ export const sendMessage = async (req, res) => {
       imageUrl = uploadResponse.secure_url;
     }
 
+    let audioUrl;
+    if (audio) {
+      // upload base64 audio to cloudinary
+      const uploadResponse = await cloudinary.uploader.upload(audio, {
+        resource_type: "video", // Cloudinary treats audio as video
+        format: "mp3"
+      });
+      audioUrl = uploadResponse.secure_url;
+    }
+
     const newMessage = new Message({
       senderId,
       receiverId,
       text,
       image: imageUrl,
+      audio: audioUrl,
     });
 
     await newMessage.save();

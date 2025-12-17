@@ -60,6 +60,16 @@ export const useChatStore = create((set, get) => ({
     const { selectedUser, messages } = get();
     const { authUser } = useAuthStore.getState();
 
+    // Convert audio blob to base64 if present
+    let audioData = null;
+    if (messageData.audio) {
+      audioData = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(messageData.audio);
+      });
+    }
+
     const tempId = `temp-${Date.now()}`;
 
     const optimisticMessage = {
@@ -68,14 +78,18 @@ export const useChatStore = create((set, get) => ({
       receiverId: selectedUser._id,
       text: messageData.text,
       image: messageData.image,
+      audio: audioData,
       createdAt: new Date().toISOString(),
-      isOptimistic: true, // flag to identify optimistic messages (optional)
+      isOptimistic: true,
     };
-    // immidetaly update the ui by adding the message
+    // immediately update the ui by adding the message
     set({ messages: [...messages, optimisticMessage] });
 
     try {
-      const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
+      const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, {
+        ...messageData,
+        audio: audioData,
+      });
       set({ messages: messages.concat(res.data) });
     } catch (error) {
       // remove optimistic message on failure
