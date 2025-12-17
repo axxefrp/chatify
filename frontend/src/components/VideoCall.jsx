@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
-import { PhoneIcon, PhoneOffIcon, MicIcon, MicOffIcon, VideoIcon, VideoOffIcon } from "lucide-react";
+import { PhoneIcon, PhoneOffIcon, MicIcon, MicOffIcon, VideoIcon, VideoOffIcon, MonitorIcon } from "lucide-react";
 
 function VideoCall({ onClose }) {
   const { selectedUser } = useChatStore();
@@ -13,6 +13,8 @@ function VideoCall({ onClose }) {
   const [remoteStream, setRemoteStream] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [screenStream, setScreenStream] = useState(null);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerConnectionRef = useRef(null);
@@ -183,6 +185,68 @@ function VideoCall({ onClose }) {
         track.enabled = !track.enabled;
       });
       setIsVideoOff(!isVideoOff);
+    }
+  };
+
+  const startScreenShare = async () => {
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: false, // Screen sharing typically doesn't include system audio
+      });
+
+      setScreenStream(screenStream);
+      setIsScreenSharing(true);
+
+      // Replace the video track in the peer connection
+      const videoTrack = screenStream.getVideoTracks()[0];
+      const sender = peerConnectionRef.current.getSenders().find(s => s.track.kind === 'video');
+      if (sender) {
+        sender.replaceTrack(videoTrack);
+      }
+
+      // Update local video to show screen
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = screenStream;
+      }
+
+      // Handle when user stops sharing via browser
+      videoTrack.onended = () => {
+        stopScreenShare();
+      };
+    } catch (error) {
+      console.error("Error starting screen share:", error);
+    }
+  };
+
+  const stopScreenShare = () => {
+    if (screenStream) {
+      screenStream.getTracks().forEach(track => track.stop());
+      setScreenStream(null);
+    }
+
+    setIsScreenSharing(false);
+
+    // Switch back to camera
+    if (localStream) {
+      const videoTrack = localStream.getVideoTracks()[0];
+      const sender = peerConnectionRef.current.getSenders().find(s => s.track.kind === 'video');
+      if (sender) {
+        sender.replaceTrack(videoTrack);
+      }
+
+      // Update local video back to camera
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = localStream;
+      }
+    }
+  };
+
+  const toggleScreenShare = () => {
+    if (isScreenSharing) {
+      stopScreenShare();
+    } else {
+      startScreenShare();
     }
   };
 
