@@ -34,6 +34,43 @@ io.on("connection", (socket) => {
   // io.emit() is used to send events to all connected clients
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
+  // Video call signaling
+  socket.on("call-user", (data) => {
+    const { to, offer } = data;
+    const receiverSocketId = getReceiverSocketId(to);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("incoming-call", {
+        from: userId,
+        offer,
+        callerName: socket.user.fullName,
+      });
+    }
+  });
+
+  socket.on("answer-call", (data) => {
+    const { to, answer } = data;
+    const receiverSocketId = getReceiverSocketId(to);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("call-answered", { answer });
+    }
+  });
+
+  socket.on("ice-candidate", (data) => {
+    const { to, candidate } = data;
+    const receiverSocketId = getReceiverSocketId(to);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("ice-candidate", { candidate });
+    }
+  });
+
+  socket.on("end-call", (data) => {
+    const { to } = data;
+    const receiverSocketId = getReceiverSocketId(to);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("call-ended");
+    }
+  });
+
   // with socket.on we listen for events from clients
   socket.on("disconnect", () => {
     console.log("A user disconnected", socket.user.fullName);
