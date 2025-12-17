@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { LogOutIcon, VolumeOffIcon, Volume2Icon } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
+import toast from "react-hot-toast";
 
 const mouseClickSound = new Audio("/sounds/mouse-click.mp3");
 
@@ -16,13 +17,34 @@ function ProfileHeader() {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image file is too large. Please choose an image smaller than 5MB.");
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please select a valid image file.");
+      return;
+    }
+
     const reader = new FileReader();
     reader.readAsDataURL(file);
 
     reader.onloadend = async () => {
       const base64Image = reader.result;
       setSelectedImg(base64Image);
-      await updateProfile({ profilePic: base64Image });
+      try {
+        await updateProfile({ profilePic: base64Image });
+      } catch (error) {
+        console.error("Profile update error:", error);
+        // Error is already handled in the store
+      }
+    };
+
+    reader.onerror = () => {
+      toast.error("Failed to read the image file.");
     };
   };
 

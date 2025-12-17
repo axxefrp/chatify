@@ -107,9 +107,22 @@ export const updateProfile = async (req, res) => {
     const { profilePic } = req.body;
     if (!profilePic) return res.status(400).json({ message: "Profile pic is required" });
 
+    // Validate base64 format
+    if (!profilePic.startsWith('data:image/')) {
+      return res.status(400).json({ message: "Invalid image format" });
+    }
+
     const userId = req.user._id;
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic);
+    console.log("Uploading to Cloudinary...");
+    const uploadResponse = await cloudinary.uploader.upload(profilePic, {
+      folder: 'chatify-profiles',
+      resource_type: 'auto',
+      quality: 'auto',
+      format: 'auto'
+    });
+
+    console.log("Cloudinary upload successful:", uploadResponse.secure_url);
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -119,7 +132,17 @@ export const updateProfile = async (req, res) => {
 
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.log("Error in update profile:", error);
+    console.error("Error in update profile:", error);
+    console.error("Error details:", error.message);
+
+    // Provide more specific error messages
+    if (error.message.includes('cloudinary')) {
+      return res.status(500).json({ message: "Image upload service temporarily unavailable" });
+    }
+    if (error.message.includes('File size too large')) {
+      return res.status(400).json({ message: "Image file is too large. Please choose a smaller image." });
+    }
+
     res.status(500).json({ message: "Internal server error" });
   }
 };
