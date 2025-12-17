@@ -158,14 +158,19 @@ function VideoCall({ onClose }) {
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
     }
+    if (screenStream) {
+      screenStream.getTracks().forEach(track => track.stop());
+    }
     if (peerConnectionRef.current) {
       peerConnectionRef.current.close();
     }
     setLocalStream(null);
     setRemoteStream(null);
+    setScreenStream(null);
     setIsInCall(false);
     setIsCalling(false);
     setIncomingCall(null);
+    setIsScreenSharing(false);
     socket.emit("end-call", { to: selectedUser._id });
     onClose();
   };
@@ -315,6 +320,12 @@ function VideoCall({ onClose }) {
               className={`p-4 rounded-full ${isVideoOff ? 'bg-red-500' : 'bg-slate-700'} hover:bg-opacity-80 transition-colors`}
             >
               {isVideoOff ? <VideoOffIcon className="w-6 h-6 text-white" /> : <VideoIcon className="w-6 h-6 text-white" />}
+            </button>
+            <button
+              onClick={toggleScreenShare}
+              className={`p-4 rounded-full ${isScreenSharing ? 'bg-blue-500' : 'bg-slate-700'} hover:bg-opacity-80 transition-colors`}
+            >
+              <MonitorIcon className="w-6 h-6 text-white" />
             </button>
             <button
               onClick={endCall}

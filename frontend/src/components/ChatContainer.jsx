@@ -94,19 +94,20 @@ function ChatContainer() {
   return (
     <>
       <ChatHeader />
-      <div className="flex-1 px-6 overflow-y-auto py-8">
+      <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
         {messages.length > 0 && !isMessagesLoading ? (
-          <div className="max-w-3xl mx-auto space-y-6">
+            <div className="max-w-4xl mx-auto space-y-4">
             {messages.map((msg) => (
               <div
                 key={msg._id}
                 className={`chat group ${msg.senderId === authUser._id ? "chat-end" : "chat-start"}`}
               >
                 <div
-                  className={`chat-bubble relative ${
+                  className={`chat-bubble relative shadow-lg ${
                     msg.senderId === authUser._id
-                      ? "bg-gradient-to-r from-brand-primary to-brand-secondary text-white"
-                      : "bg-slate-800 text-slate-200"
+                      ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white"
+                      : "bg-white/10 backdrop-blur-sm text-slate-200 border border-white/20"
                   }`}
                 >
                   {msg.image && (
@@ -140,8 +141,10 @@ function ChatContainer() {
                       )}
                     </div>
                   )}
-                  {msg.text && <p className="mt-2">{msg.text}</p>}
-                  <p className="text-xs mt-1 opacity-75 flex items-center gap-1">
+                  {msg.text && <p className="text-sm leading-relaxed">{msg.text}</p>}
+                  <p className={`text-xs mt-2 flex items-center gap-1 ${
+                    msg.senderId === authUser._id ? 'text-cyan-200' : 'text-slate-400'
+                  }`}>
                     {new Date(msg.createdAt).toLocaleTimeString(undefined, {
                       hour: "2-digit",
                       minute: "2-digit",
@@ -164,10 +167,10 @@ function ChatContainer() {
                             handleReaction(msg._id, reaction.emoji);
                           }
                         }}
-                        className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs transition-all ${
+                        className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
                           reaction.users.includes(authUser._id)
-                            ? "bg-brand-primary/20 text-brand-primary border border-brand-primary/30"
-                            : "bg-slate-700/50 text-slate-300 hover:bg-slate-600/50"
+                            ? "bg-purple-500/30 text-purple-200 border border-purple-400/50 shadow-lg"
+                            : "bg-white/10 text-slate-300 hover:bg-white/20 backdrop-blur-sm"
                         }`}
                       >
                         <span>{reaction.emoji}</span>
@@ -180,9 +183,9 @@ function ChatContainer() {
                 {/* Add Reaction Button */}
                 <button
                   onClick={() => setShowReactionPicker(showReactionPicker === msg._id ? null : msg._id)}
-                  className="absolute -bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-700 hover:bg-slate-600 rounded-full p-1"
+                  className="absolute -bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-1.5 shadow-lg border border-white/20"
                 >
-                  <PlusIcon className="w-3 h-3 text-slate-300" />
+                  <PlusIcon className="w-3 h-3 text-white" />
                 </button>
               </div>
             ))}
@@ -194,18 +197,21 @@ function ChatContainer() {
         ) : (
           <NoChatHistoryPlaceholder name={selectedUser.fullName} />
         )}
+        </div>
+
+        <MessageInput />
       </div>
 
       {/* Reaction Picker */}
       {showReactionPicker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-slate-800 rounded-lg p-4 max-w-xs w-full mx-4">
-            <div className="grid grid-cols-6 gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 max-w-xs w-full mx-4 border border-white/20 shadow-2xl">
+            <div className="grid grid-cols-6 gap-3">
               {["❤️", "👍", "😂", "😮", "😢", "😡", "🔥", "👏", "🙌", "💯", "🎉", "💔"].map((emoji) => (
                 <button
                   key={emoji}
                   onClick={() => handleReaction(showReactionPicker, emoji)}
-                  className="text-2xl hover:bg-slate-700 rounded p-2 transition-colors"
+                  className="text-2xl hover:bg-white/20 rounded-xl p-3 transition-all duration-200 hover:scale-110"
                 >
                   {emoji}
                 </button>
@@ -213,15 +219,13 @@ function ChatContainer() {
             </div>
             <button
               onClick={() => setShowReactionPicker(null)}
-              className="w-full mt-3 bg-slate-700 hover:bg-slate-600 text-white rounded py-2 transition-colors"
+              className="w-full mt-4 bg-white/10 hover:bg-white/20 text-white rounded-xl py-3 font-medium transition-all duration-200 border border-white/20"
             >
               Cancel
             </button>
           </div>
         </div>
       )}
-
-      <MessageInput />
     </>
   );
 }

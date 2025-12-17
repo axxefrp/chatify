@@ -18,26 +18,33 @@ function ChatPage() {
 
   return (
     <>
-      <div className="relative w-full max-w-6xl h-[800px]">
-        <BorderAnimatedContainer>
-          {/* STORIES SECTION */}
+      <div className="h-screen w-full flex flex-col bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950">
+        {/* STORIES SECTION - Modern floating design */}
+        <div className="flex-shrink-0 p-4 pb-2">
           <StoriesList onAddStory={() => setShowStoryCreator(true)} />
+        </div>
 
-          {/* LEFT SIDE */}
-          <div className="w-80 bg-gradient-to-b from-slate-800/60 to-slate-900/60 backdrop-blur-sm flex flex-col border-r border-brand-primary/20">
-            <ProfileHeader />
-            <ActiveTabSwitch />
+        {/* MAIN CONTENT AREA */}
+        <div className="flex-1 flex overflow-hidden px-4 pb-4 gap-4 min-h-0">
+          {/* LEFT SIDEBAR - Modern glassmorphism design */}
+          <div className="w-80 flex-shrink-0">
+            <div className="h-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl shadow-purple-500/10 flex flex-col overflow-hidden">
+              <ProfileHeader />
+              <ActiveTabSwitch />
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {activeTab === "chats" ? <ChatsList /> : <ContactList />}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+                {activeTab === "chats" ? <ChatsList /> : <ContactList />}
+              </div>
             </div>
           </div>
 
-          {/* RIGHT SIDE */}
-          <div className="flex-1 flex flex-col bg-gradient-to-b from-slate-900/60 to-brand-darker/60 backdrop-blur-sm">
-            {selectedUser ? <ChatContainer /> : <NoConversationPlaceholder />}
+          {/* RIGHT CHAT AREA - Modern design */}
+          <div className="flex-1 min-w-0">
+            <div className="h-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl shadow-purple-500/10 flex flex-col overflow-hidden">
+              {selectedUser ? <ChatContainer /> : <NoConversationPlaceholder />}
+            </div>
           </div>
-        </BorderAnimatedContainer>
+        </div>
       </div>
 
       {/* STORY MODALS */}
