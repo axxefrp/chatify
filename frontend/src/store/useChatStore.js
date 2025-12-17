@@ -118,10 +118,21 @@ export const useChatStore = create((set, get) => ({
         notificationSound.play().catch((e) => console.log("Audio play failed:", e));
       }
     });
+
+    socket.on("reactionUpdate", (data) => {
+      const currentMessages = get().messages;
+      const updatedMessages = currentMessages.map(msg =>
+        msg._id === data.messageId
+          ? { ...msg, reactions: data.reactions }
+          : msg
+      );
+      set({ messages: updatedMessages });
+    });
   },
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
+    socket.off("reactionUpdate");
   },
 }));

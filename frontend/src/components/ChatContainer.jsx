@@ -5,7 +5,9 @@ import ChatHeader from "./ChatHeader";
 import NoChatHistoryPlaceholder from "./NoChatHistoryPlaceholder";
 import MessageInput from "./MessageInput";
 import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
-import { PlayIcon, PauseIcon } from "lucide-react";
+import { PlayIcon, PauseIcon, PlusIcon } from "lucide-react";
+import { axiosInstance } from "../lib/axios";
+import toast from "react-hot-toast";
 
 function ChatContainer() {
   const {
@@ -19,6 +21,53 @@ function ChatContainer() {
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
   const [playingAudio, setPlayingAudio] = useState(null);
+  const [showReactionPicker, setShowReactionPicker] = useState(null);
+  const [messagesWithReactions, setMessagesWithReactions] = useState(messages);
+
+  // Update local messages when messages change
+  useEffect(() => {
+    setMessagesWithReactions(messages);
+  }, [messages]);
+
+  const handleReaction = async (messageId, emoji) => {
+    try {
+      await axiosInstance.post(`/messages/${messageId}/reactions`, { emoji });
+      setShowReactionPicker(null);
+    } catch (error) {
+      toast.error("Failed to add reaction");
+    }
+  };
+
+  const handleRemoveReaction = async (messageId, emoji) => {
+    try {
+      await axiosInstance.delete(`/messages/${messageId}/reactions/${encodeURIComponent(emoji)}`);
+    } catch (error) {
+      toast.error("Failed to remove reaction");
+    }
+  };
+
+  // Listen for real-time reaction updates
+  useEffect(() => {
+    const handleReactionUpdate = (data) => {
+      setMessagesWithReactions(prevMessages =>
+        prevMessages.map(msg =>
+          msg._id === data.messageId
+            ? { ...msg, reactions: data.reactions }
+            : msg
+        )
+      );
+    };
+
+    if (window.socket) {
+      window.socket.on("reactionUpdate", handleReactionUpdate);
+    }
+
+    return () => {
+      if (window.socket) {
+        window.socket.off("reactionUpdate", handleReactionUpdate);
+      }
+    };
+  }, []);
 
   const toggleAudioPlayback = (messageId, audioUrl) => {
     if (playingAudio === messageId) {
@@ -51,7 +100,7 @@ function ChatContainer() {
             {messages.map((msg) => (
               <div
                 key={msg._id}
-                className={`chat ${msg.senderId === authUser._id ? "chat-end" : "chat-start"}`}
+                className={`chat group ${msg.senderId === authUser._id ? "chat-end" : "chat-start"}`}
               >
                 <div
                   className={`chat-bubble relative ${
@@ -99,6 +148,42 @@ function ChatContainer() {
                     })}
                   </p>
                 </div>
+
+                {/* Reactions */}
+                {messagesWithReactions.find(m => m._id === msg._id)?.reactions?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {messagesWithReactions.find(m => m._id === msg._id).reactions.map((reaction, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          const currentMsg = messagesWithReactions.find(m => m._id === msg._id);
+                          const userReacted = reaction.users.includes(authUser._id);
+                          if (userReacted) {
+                            handleRemoveReaction(msg._id, reaction.emoji);
+                          } else {
+                            handleReaction(msg._id, reaction.emoji);
+                          }
+                        }}
+                        className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs transition-all ${
+                          reaction.users.includes(authUser._id)
+                            ? "bg-brand-primary/20 text-brand-primary border border-brand-primary/30"
+                            : "bg-slate-700/50 text-slate-300 hover:bg-slate-600/50"
+                        }`}
+                      >
+                        <span>{reaction.emoji}</span>
+                        <span>{reaction.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add Reaction Button */}
+                <button
+                  onClick={() => setShowReactionPicker(showReactionPicker === msg._id ? null : msg._id)}
+                  className="absolute -bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-700 hover:bg-slate-600 rounded-full p-1"
+                >
+                  <PlusIcon className="w-3 h-3 text-slate-300" />
+                </button>
               </div>
             ))}
             {/* 👇 scroll target */}
@@ -110,6 +195,31 @@ function ChatContainer() {
           <NoChatHistoryPlaceholder name={selectedUser.fullName} />
         )}
       </div>
+
+      {/* Reaction Picker */}
+      {showReactionPicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-slate-800 rounded-lg p-4 max-w-xs w-full mx-4">
+            <div className="grid grid-cols-6 gap-2">
+              {["❤️", "👍", "😂", "😮", "😢", "😡", "🔥", "👏", "🙌", "💯", "🎉", "💔"].map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => handleReaction(showReactionPicker, emoji)}
+                  className="text-2xl hover:bg-slate-700 rounded p-2 transition-colors"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowReactionPicker(null)}
+              className="w-full mt-3 bg-slate-700 hover:bg-slate-600 text-white rounded py-2 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <MessageInput />
     </>

@@ -23,6 +23,20 @@ const messageSchema = new mongoose.Schema(
     audio: {
       type: String,
     },
+    reactions: [{
+      emoji: {
+        type: String,
+        required: true,
+      },
+      users: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      }],
+      count: {
+        type: Number,
+        default: 0,
+      },
+    }],
   },
   { timestamps: true }
 );
