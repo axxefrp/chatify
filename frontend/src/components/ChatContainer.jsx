@@ -94,30 +94,30 @@ function ChatContainer() {
   return (
     <>
       <ChatHeader />
-      <div className="flex-1 overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+      <div className="flex-1 overflow-hidden flex flex-col bg-gradient-to-b from-slate-900/50 to-slate-900">
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-6 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
         {messages.length > 0 && !isMessagesLoading ? (
-            <div className="max-w-4xl mx-auto space-y-4">
+            <div className="max-w-3xl mx-auto space-y-3">
             {messages.map((msg) => (
               <div
                 key={msg._id}
-                className={`chat group ${msg.senderId === authUser._id ? "chat-end" : "chat-start"}`}
+                className={`chat group ${msg.senderId === authUser._id ? "chat-end" : "chat-start"} animate-slideIn`}
               >
                 <div
-                  className={`chat-bubble relative shadow-lg ${
+                  className={`chat-bubble relative shadow-xl rounded-2xl ${
                     msg.senderId === authUser._id
-                      ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white"
-                      : "bg-white/10 backdrop-blur-sm text-slate-200 border border-white/20"
+                      ? "bg-gradient-to-br from-brand-primary via-indigo-500 to-brand-primary text-white"
+                      : "bg-slate-800/60 backdrop-blur-sm text-slate-100 border border-slate-700/50"
                   }`}
                 >
                   {msg.image && (
-                    <img src={msg.image} alt="Shared" className="rounded-lg h-48 object-cover mb-2" />
+                    <img src={msg.image} alt="Shared" className="rounded-xl h-48 w-48 object-cover mb-2 shadow-lg" />
                   )}
                   {msg.audio && (
-                    <div className="flex items-center space-x-3 mb-2 p-3 bg-black/20 rounded-lg">
+                    <div className="flex items-center space-x-3 mb-2 p-3 rounded-lg backdrop-blur-sm" style={{backgroundColor: msg.senderId === authUser._id ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.3)'}}>
                       <button
                         onClick={() => toggleAudioPlayback(msg._id, msg.audio)}
-                        className="text-white hover:text-brand-accent transition-colors"
+                        className={`${msg.senderId === authUser._id ? 'text-white hover:text-cyan-200' : 'text-slate-300 hover:text-brand-primary'} transition-colors`}
                       >
                         {playingAudio === msg._id ? (
                           <PauseIcon className="w-5 h-5" />
@@ -126,8 +126,8 @@ function ChatContainer() {
                         )}
                       </button>
                       <div className="flex-1">
-                        <div className="bg-white/20 rounded-full h-2">
-                          <div className="bg-white h-2 rounded-full w-1/4"></div>
+                        <div className={`rounded-full h-2 ${msg.senderId === authUser._id ? 'bg-white/30' : 'bg-slate-600/50'}`}>
+                          <div className={`h-2 rounded-full w-1/4 ${msg.senderId === authUser._id ? 'bg-cyan-300' : 'bg-brand-primary'}`}></div>
                         </div>
                       </div>
                       <span className="text-xs opacity-75">Voice</span>
@@ -141,9 +141,9 @@ function ChatContainer() {
                       )}
                     </div>
                   )}
-                  {msg.text && <p className="text-sm leading-relaxed">{msg.text}</p>}
+                  {msg.text && <p className="text-sm leading-relaxed font-medium">{msg.text}</p>}
                   <p className={`text-xs mt-2 flex items-center gap-1 ${
-                    msg.senderId === authUser._id ? 'text-cyan-200' : 'text-slate-400'
+                    msg.senderId === authUser._id ? 'text-cyan-200/70' : 'text-slate-400'
                   }`}>
                     {new Date(msg.createdAt).toLocaleTimeString(undefined, {
                       hour: "2-digit",
@@ -154,7 +154,7 @@ function ChatContainer() {
 
                 {/* Reactions */}
                 {messagesWithReactions.find(m => m._id === msg._id)?.reactions?.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
+                  <div className="flex flex-wrap gap-2 mt-2 px-2">
                     {messagesWithReactions.find(m => m._id === msg._id).reactions.map((reaction, index) => (
                       <button
                         key={index}
@@ -167,10 +167,10 @@ function ChatContainer() {
                             handleReaction(msg._id, reaction.emoji);
                           }
                         }}
-                        className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                        className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 backdrop-blur-sm ${
                           reaction.users.includes(authUser._id)
-                            ? "bg-purple-500/30 text-purple-200 border border-purple-400/50 shadow-lg"
-                            : "bg-white/10 text-slate-300 hover:bg-white/20 backdrop-blur-sm"
+                            ? "bg-brand-primary/40 text-white border border-brand-primary/50 shadow-lg shadow-brand-primary/20"
+                            : "bg-slate-700/40 text-slate-300 hover:bg-slate-700/60 border border-slate-600/30"
                         }`}
                       >
                         <span>{reaction.emoji}</span>
@@ -183,9 +183,9 @@ function ChatContainer() {
                 {/* Add Reaction Button */}
                 <button
                   onClick={() => setShowReactionPicker(showReactionPicker === msg._id ? null : msg._id)}
-                  className="absolute -bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-1.5 shadow-lg border border-white/20"
+                  className="absolute -bottom-1 right-0 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-slate-700/80 hover:bg-slate-700 backdrop-blur-md rounded-full p-2 shadow-lg border border-slate-600/50"
                 >
-                  <PlusIcon className="w-3 h-3 text-white" />
+                  <PlusIcon className="w-4 h-4 text-slate-200" />
                 </button>
               </div>
             ))}

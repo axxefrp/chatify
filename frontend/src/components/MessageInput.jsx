@@ -107,45 +107,48 @@ function MessageInput() {
   };
 
   return (
-    <div className="p-4 border-t border-slate-700/50">
+    <div className="border-t border-slate-700/50 bg-gradient-to-b from-transparent via-slate-900/50 to-slate-950 backdrop-blur-sm p-4">
       {imagePreview && (
-        <div className="max-w-3xl mx-auto mb-3 flex items-center">
-          <div className="relative">
+        <div className="max-w-3xl mx-auto mb-4 flex items-center gap-3 animate-slideIn">
+          <div className="relative group">
             <img
               src={imagePreview}
               alt="Preview"
-              className="w-20 h-20 object-cover rounded-lg border border-slate-700"
+              className="w-24 h-24 object-cover rounded-xl border border-slate-700/50 shadow-lg group-hover:border-brand-primary/50 transition-all duration-300"
             />
             <button
               onClick={removeImage}
-              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700"
+              className="absolute -top-3 -right-3 w-7 h-7 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 shadow-lg transition-all duration-300 transform hover:scale-110"
               type="button"
             >
               <XIcon className="w-4 h-4" />
             </button>
           </div>
+          <div className="text-sm text-slate-400">Image attached</div>
         </div>
       )}
 
       {audioUrl && (
-        <div className="max-w-3xl mx-auto mb-3 flex items-center space-x-3">
-          <div className="flex items-center space-x-2 bg-slate-800/50 rounded-lg p-3 flex-1">
+        <div className="max-w-3xl mx-auto mb-4 flex items-center space-x-3 animate-slideIn">
+          <div className="flex items-center space-x-3 bg-slate-800/60 rounded-xl p-4 flex-1 backdrop-blur-sm border border-slate-700/50">
             <button
               onClick={togglePlayback}
-              className="text-brand-primary hover:text-brand-accent transition-colors"
+              className="text-brand-primary hover:text-brand-accent transition-colors flex-shrink-0"
               type="button"
             >
               {isPlaying ? <PauseIcon className="w-5 h-5" /> : <PlayIcon className="w-5 h-5" />}
             </button>
-            <div className="flex-1 bg-slate-700 rounded-full h-2">
-              <div className="bg-brand-primary h-2 rounded-full w-1/4"></div>
+            <div className="flex-1">
+              <div className="bg-slate-700/50 rounded-full h-2">
+                <div className="bg-gradient-to-r from-brand-primary to-brand-accent h-2 rounded-full w-1/4"></div>
+              </div>
             </div>
-            <span className="text-xs text-slate-400">Voice message</span>
+            <span className="text-xs text-slate-400 flex-shrink-0">Voice message</span>
             <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} />
           </div>
           <button
             onClick={removeAudio}
-            className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700"
+            className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 shadow-lg transition-all duration-300 flex-shrink-0"
             type="button"
           >
             <XIcon className="w-4 h-4" />
@@ -153,7 +156,7 @@ function MessageInput() {
         </div>
       )}
 
-      <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto flex space-x-4">
+      <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto flex gap-3">
         <input
           type="text"
           value={text}
@@ -161,7 +164,7 @@ function MessageInput() {
             setText(e.target.value);
             isSoundEnabled && playRandomKeyStrokeSound();
           }}
-          className="flex-1 bg-slate-800/50 border border-slate-700/50 rounded-lg py-2 px-4"
+          className="flex-1 bg-slate-800/60 border border-slate-700/50 rounded-xl py-2.5 px-4 text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-brand-primary focus:border-transparent focus:bg-slate-800/80 transition-all duration-300 backdrop-blur-sm"
           placeholder="Type your message..."
         />
 
@@ -176,8 +179,8 @@ function MessageInput() {
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className={`bg-slate-800/50 text-slate-400 hover:text-slate-200 rounded-lg px-4 transition-colors ${
-            imagePreview ? "text-cyan-500" : ""
+          className={`bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-brand-primary rounded-xl px-4 py-2.5 transition-all duration-300 border border-slate-700/50 hover:border-brand-primary/50 backdrop-blur-sm flex items-center justify-center ${
+            imagePreview ? "text-brand-primary border-brand-primary/50 bg-slate-800" : ""
           }`}
         >
           <ImageIcon className="w-5 h-5" />
@@ -186,10 +189,10 @@ function MessageInput() {
         <button
           type="button"
           onClick={isRecording ? stopRecording : startRecording}
-          className={`rounded-lg px-4 transition-all ${
+          className={`rounded-xl px-4 py-2.5 transition-all duration-300 border flex items-center justify-center backdrop-blur-sm font-medium ${
             isRecording
-              ? "bg-red-500 text-white animate-pulse"
-              : "bg-slate-800/50 text-slate-400 hover:text-red-400"
+              ? "bg-red-500/90 text-white animate-pulse border-red-400/50 shadow-lg shadow-red-500/20"
+              : "bg-slate-800/60 text-slate-400 hover:text-slate-100 border-slate-700/50 hover:border-slate-600/50"
           }`}
         >
           {isRecording ? <MicOffIcon className="w-5 h-5" /> : <MicIcon className="w-5 h-5" />}
@@ -198,9 +201,10 @@ function MessageInput() {
         <button
           type="submit"
           disabled={!text.trim() && !imagePreview && !audioBlob}
-          className="bg-gradient-to-r from-brand-primary to-brand-accent text-white rounded-lg px-4 py-2 font-medium hover:from-brand-primary/90 hover:to-brand-accent/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
+          className="bg-gradient-to-r from-brand-primary to-indigo-500 text-white rounded-xl px-5 py-2.5 font-semibold hover:shadow-lg hover:shadow-brand-primary/30 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2 border border-brand-primary/50"
         >
           <SendIcon className="w-5 h-5" />
+          <span className="hidden sm:inline">Send</span>
         </button>
       </form>
     </div>
